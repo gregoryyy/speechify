@@ -1,3 +1,7 @@
 venv/**
+output/**
+input/**
 .DS_Store
+*.wav
+*.mp3
 *.epub

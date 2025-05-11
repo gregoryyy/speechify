@@ -57,19 +57,34 @@ def epub_to_chapters(epub_path):
         logger.error(f"Error processing epub file: {e}")
         raise
 
-def text_to_speech(text, output_file, model=None):
-    """Convert text to speech using specified TTS model."""
+def text_to_speech(text, output_file, model=None, language="en", speaker=None):
+    """Convert text to speech using specified TTS model and speaker."""
     try:
         if model is None:
-            # Default model selection
-            model = "tts_models/en/vctk/vits"  # Multi-speaker model
-            # Alternative options:
-            # model = "tts_models/en/ljspeech/fast_pitch"  # Fast single female voice
-            # model = "tts_models/en/jenny/jenny"  # High quality female voice
-            # model = "tts_models/multilingual/multi-dataset/xtts_v2"  # Multilingual
+            # Default to multi-speaker VCTK model
+            model = "tts_models/en/vctk/vits"
+        
+        logger.info(f"Using TTS model: {model}")
+        logger.info(f"Output file: {output_file}")
+        logger.info(f"Text length: {len(text)} characters")
+        if language:
+            logger.info(f"Language: {language}")
         
         tts = TTS(model_name=model)
-        tts.tts_to_file(text=text, file_path=output_file)
+        
+        # Handle multi-speaker models
+        if hasattr(tts, 'speakers'):
+            speakers = tts.speakers
+            if speakers:
+                if speaker is not None and 0 <= speaker < len(speakers):
+                    selected_speaker = speakers[speaker]
+                else:
+                    # Default to first speaker if index invalid
+                    selected_speaker = speakers[0]
+                tts.tts_to_file(text=text, file_path=output_file, speaker=selected_speaker, language=language)
+        else:
+            # For single-speaker models
+            tts.tts_to_file(text=text, file_path=output_file, language=language)
         
     except Exception as e:
         logger.error(f"Error in text-to-speech conversion: {e}")
@@ -92,6 +107,9 @@ def main():
     parser.add_argument('output_dir', help='Directory for audio output')
     parser.add_argument('--model', help='TTS model to use', default=None)
     parser.add_argument('--combine', action='store_true', help='Combine all chapters into single file')
+    parser.add_argument('--language', help='Language code (e.g., en, de, fr)', default=None)
+    parser.add_argument('--speaker', type=int, help='Speaker index for multi-speaker models', default=None)
+    
     args = parser.parse_args()
 
     try:
@@ -111,7 +129,7 @@ def main():
             )
             
             logger.info(f"Converting chapter: {chapter['title']}")
-            text_to_speech(chapter['content'], chapter_file, args.model)
+            text_to_speech(chapter['content'], chapter_file, args.model, args.language, args.speaker)
             chapter_files.append(chapter_file)
             
         # Combine audio files if requested
