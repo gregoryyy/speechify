@@ -1,0 +1,9 @@
+# requirements.txt
+TTS>=0.8.0
+ebooklib>=0.17.1
+beautifulsoup4>=4.9.3
+pydub>=0.25.1
+ffmpeg-python>=0.2.0
+numpy>=1.19.5
+torch>=1.9.0
+tqdm>=4.62.3
