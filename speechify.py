@@ -43,9 +43,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def clean_text(text):
+    '''Clean and normalize text by removing extra spaces and newlines.'''
     return ' '.join(text.split()).strip()
 
 def get_chapter_title(soup):
+    '''Extract the title of the chapter from the HTML content.'''
     for tag in soup.find_all(['h1', 'h2', 'h3', 'h4']):
         title = clean_text(tag.get_text())
         if title:
@@ -53,6 +55,7 @@ def get_chapter_title(soup):
     return None
 
 def epub_to_chapters(epub_path):
+    '''Convert EPUB file to chapters with text content.'''
     book = epub.read_epub(epub_path)
     chapters = []
     for item in book.get_items():
@@ -70,9 +73,11 @@ def epub_to_chapters(epub_path):
     return chapters
 
 def sanitize_filename(name):
+    '''Sanitize filename by removing invalid characters.'''
     return re.sub(r'[\\/*?:"<>|]', '', name.replace(' ', '_'))
 
-def split_text_nltk(text, max_chars=400):
+def split_text_nltk(text, max_chars=250):
+    '''Split text into chunks of a specified maximum character length, using NLTK.'''
     sentences = sent_tokenize(text)
     chunks = []
     current = ""
@@ -88,12 +93,35 @@ def split_text_nltk(text, max_chars=400):
         chunks.append(current)
     return chunks
 
+def get_device():
+    '''Get the appropriate accelerator for TTS and ML processing.'''
+    if torch.cuda.is_available():
+        logger.info("Using CUDA")
+        return torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        logger.info("Using MPS")
+        return torch.device("mps")
+    else:
+        logger.info("Using CPU")
+        return torch.device("cpu")
+
 def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav"):
     if os.path.exists(output_file):
         logger.info(f"Skipping existing file: {output_file}")
         return
 
-    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=torch.cuda.is_available())
+    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
+    device = get_device()
+    tts.to(device)
+
+def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav"):
+    '''Convert text to speech using XTTS v2.'''
+    if os.path.exists(output_file):
+        logger.info(f"Skipping existing file: {output_file}")
+        return
+
+    device = get_device()
+    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=device)
     chunks = split_text_nltk(text, max_chars=500)
 
     temp_files = []
@@ -113,6 +141,7 @@ def text_to_speech(text, output_file, speaker_wav, language="de", output_format=
         os.remove(f)
 
 def combine_chapter_files(file_list, output_file):
+    '''Combine multiple audio files into a single file.'''
     combined = AudioSegment.empty()
     for file_path in file_list:
         combined += AudioSegment.from_file(file_path)
