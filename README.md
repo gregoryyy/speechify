@@ -10,6 +10,7 @@ Convert an epub ebook file to an audio book.
   - This includes:
     - Coqui TTS library to generate audio
     - Beautiful Soup to parse epub content
+    - PyTorch for ML
     - etc.
 
 ## Run
@@ -19,11 +20,11 @@ python speechify.py <input_file>.epub <output_dir>
 ## Models
 
 Example models:
+- **tts_models/multilingual/multi-dataset/xtts_v2**: Latest multilingual model supporting multiple languages with good quality.
 - **tts_models/en/vctk/vits** (default): High-quality multi-speaker model with natural-sounding voices. Good for longer texts.
 - **tts_models/de/thorsten/vits**: German model
 - **tts_models/en/ljspeech/fast_pitch**: Optimized for speed while maintaining good quality. Single female voice.
 - **tts_models/en/jenny/jenny**: Premium quality single female voice, excellent clarity and naturalness.
-- **tts_models/multilingual/multi-dataset/xtts_v2**: Latest multilingual model supporting multiple languages with good quality.
 - **tts_models/de/thorsten/tacotron2-DDC**: German model
 
 Coqui TTS models are downloaded automatically when first used, but they're stored locally at:
