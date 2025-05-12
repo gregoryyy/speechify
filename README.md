@@ -29,6 +29,8 @@ Example models:
 
 Coqui TTS models are downloaded automatically when first used, but they're stored locally at:
 
+```
 ~/Library/Application Support/tts/tts_models/  # macOS
 ~/.local/share/tts/tts_models/  # Linux
 %USERPROFILE%\.local\share\tts\tts_models\  # Windows
+```
