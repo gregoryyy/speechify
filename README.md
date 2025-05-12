@@ -26,6 +26,12 @@ Example:
 python speechify.py --speaker-wav kennedy.wav --language en --format mp3 book.epub book_dir
 ```
 
+If audio files need to be merged:
+
+```
+python merge.py <input_dir> <output_file>
+```
+
 ## Models
 
 Note that the required parameters differ per model
