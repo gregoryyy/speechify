@@ -11,8 +11,6 @@ Convert an epub ebook file to an audio book.
   - Coqui TTS library to generate audio (formerly Mozilla TTS)
   - Beautiful Soup to parse epub content
   - PyTorch for ML
-  - Langchain for tokenization
-  - Transformers
   - etc.
 
 ## Run

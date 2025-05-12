@@ -9,14 +9,21 @@ from tqdm import tqdm
 import logging
 from pydub import AudioSegment
 
+
+import nltk
+try:
+    nltk.data.find('tokenizers/punkt')
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt')
+    nltk.download('punkt_tab') 
+
+from nltk.tokenize import sent_tokenize
 import torch
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import XttsAudioConfig
 from TTS.config.shared_configs import BaseDatasetConfig
 from TTS.tts.models.xtts import XttsArgs
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from transformers import AutoTokenizer
 
 # Allow model configs for PyTorch >= 2.6
 torch.serialization.add_safe_globals([
@@ -26,7 +33,7 @@ torch.serialization.add_safe_globals([
     XttsArgs
 ])
 
-# Logging to file to keep progress bar clean
+# Logging
 logging.basicConfig(
     filename="speechify.log",
     filemode="w",
@@ -65,13 +72,21 @@ def epub_to_chapters(epub_path):
 def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|]', '', name.replace(' ', '_'))
 
-def split_text_with_token_limit(text, tokenizer, max_tokens=400):
-    splitter = RecursiveCharacterTextSplitter.from_huggingface_tokenizer(
-        tokenizer=tokenizer,
-        chunk_size=max_tokens,
-        chunk_overlap=0
-    )
-    return splitter.split_text(text)
+def split_text_nltk(text, max_chars=400):
+    sentences = sent_tokenize(text)
+    chunks = []
+    current = ""
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if len(current) + len(sentence) + 1 <= max_chars:
+            current = f"{current} {sentence}".strip()
+        else:
+            if current:
+                chunks.append(current)
+            current = sentence
+    if current:
+        chunks.append(current)
+    return chunks
 
 def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav"):
     if os.path.exists(output_file):
@@ -79,8 +94,7 @@ def text_to_speech(text, output_file, speaker_wav, language="de", output_format=
         return
 
     tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=torch.cuda.is_available())
-    tokenizer = AutoTokenizer.from_pretrained("facebook/mms-tts-de")
-    chunks = split_text_with_token_limit(text, tokenizer)
+    chunks = split_text_nltk(text, max_chars=500)
 
     temp_files = []
     for i, chunk in enumerate(chunks):

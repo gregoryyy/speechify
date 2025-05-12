@@ -1,22 +1,19 @@
-# Coqui TTS for XTTS
+# Coqui TTS engine (includes tokenizer and model support)
 TTS>=0.21.0
 
-# Tokenizer for XTTS + langchain splitting
-transformers==4.33.3
-sentencepiece>=0.1.99
-langchain>=0.1.0
-
-# PyTorch (for TTS/XTTS models)
+# PyTorch (for model execution)
 torch>=2.0.0
 
-# EPUB and HTML parsing
+# EPUB parsing
 ebooklib>=0.17.1
 beautifulsoup4>=4.9.3
+nltk >= 3.8
 
-# Audio processing and export
+# Audio processing
 pydub>=0.25.1
-ffmpeg-python>=0.2.0
 numpy>=1.19.5
+# need brew install ffmpeg
+ffmpeg-python>=0.2.0  # Python wrapper
 
-# Progress bar
+# Progress display
 tqdm>=4.62.3
