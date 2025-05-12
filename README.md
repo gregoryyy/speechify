@@ -4,6 +4,7 @@ Convert an epub ebook file to an audio book.
 
 ## Dependencies
 
+<<<<<<< HEAD
 - brew install ffmpeg
 - brew install espeak-ng
 - requirements.txt
@@ -12,6 +13,16 @@ Convert an epub ebook file to an audio book.
     - Beautiful Soup to parse epub content
     - PyTorch for ML
     - etc.
+=======
+- System (Mac):
+  - brew install ffmpeg
+  - brew install espeak-ng
+- Python requirements.txt
+  - Coqui TTS library to generate audio (formerly Mozilla TTS)
+  - Beautiful Soup to parse epub content
+  - PyTorch for ML
+  - etc.
+>>>>>>> 0557c2b (test raw models hardcoded before parametrizing them, improved requirements)
 
 ## Run
 
