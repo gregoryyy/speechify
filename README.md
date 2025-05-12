@@ -17,7 +17,29 @@ Convert an epub ebook file to an audio book.
 
 ```
 . venv/bin/activate
+
 python speechify.py <options> <input_file.epub> <output_dir>
+```
+
+Synopsis:
+
+```
+Convert EPUB to audio using XTTS v2
+
+positional arguments:
+  epub_file             Path to the .epub file
+  output_dir            Directory for audio output
+
+options:
+  -h, --help            show this help message and exit
+  --language LANGUAGE   Language code (default: de)
+  --speaker-wav SPEAKER_WAV
+                        Path to WAV file to use for XTTS zero-shot voice
+                        cloning
+  --format {wav,mp3}    Output audio format
+  --combine             Combine all chapter files into a single audiobook
+  --accelerate ACCELERATE
+                        Enable GPU or MPS acceleration
 ```
 
 Example:

@@ -105,23 +105,18 @@ def get_device():
         logger.info("Using CPU")
         return torch.device("cpu")
 
-def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav"):
-    if os.path.exists(output_file):
-        logger.info(f"Skipping existing file: {output_file}")
-        return
 
-    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
-    device = get_device()
-    tts.to(device)
-
-def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav"):
+def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav", accelerate=False):
     '''Convert text to speech using XTTS v2.'''
     if os.path.exists(output_file):
         logger.info(f"Skipping existing file: {output_file}")
         return
 
-    device = get_device()
-    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2", gpu=device)
+    tts = TTS(model_name="tts_models/multilingual/multi-dataset/xtts_v2")
+    if accelerate == "true":
+        device = get_device()
+        tts.to(device)
+        
     chunks = split_text_nltk(text, max_chars=500)
 
     temp_files = []
@@ -155,6 +150,7 @@ def main():
     parser.add_argument("--speaker-wav", required=True, help="Path to WAV file to use for XTTS zero-shot voice cloning")
     parser.add_argument("--format", default="wav", choices=["wav", "mp3"], help="Output audio format")
     parser.add_argument("--combine", action="store_true", help="Combine all chapter files into a single audiobook")
+    parser.add_argument("--accelerate", default="false", help="Enable GPU or MPS acceleration") 
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -172,7 +168,8 @@ def main():
                 output_file=out_path,
                 speaker_wav=args.speaker_wav,
                 language=args.language,
-                output_format=args.format
+                output_format=args.format,
+                accelerate=args.accelerate == "true"
             )
             output_files.append(out_path)
         except Exception as e:
