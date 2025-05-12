@@ -13,11 +13,29 @@ Convert an epub ebook file to an audio book.
   - PyTorch for ML
   - etc.
 
-## Run
+## Setup
+
+Prerequisite: 
+
+1 -- Open and setup environment:
 
 ```
+python -m venv venv
 . venv/bin/activate
+pip install -r requirements.txt
+```
 
+2 -- Prepare data:
+
+- epub files to read
+- voice samples as wav files whose voice will be used (3-15 seconds low noise, phonetic variation, works, cross-language)
+
+
+## Run
+
+### Speechify
+
+```
 python speechify.py <options> <input_file.epub> <output_dir>
 ```
 
@@ -34,12 +52,11 @@ options:
   -h, --help            show this help message and exit
   --language LANGUAGE   Language code (default: de)
   --speaker-wav SPEAKER_WAV
-                        Path to WAV file to use for XTTS zero-shot voice
-                        cloning
+                        Path to WAV file to use for XTTS zero-shot voice cloning
   --format {wav,mp3}    Output audio format
-  --combine             Combine all chapter files into a single audiobook
-  --accelerate ACCELERATE
-                        Enable GPU or MPS acceleration
+  --combine             Combine all chapter files into a single audiobook (default: false)
+  --accelerate true/false
+                        Enable GPU or MPS acceleration (default: false)
 ```
 
 Example:
@@ -48,11 +65,22 @@ Example:
 python speechify.py --speaker-wav kennedy.wav --language en --format mp3 book.epub book_dir
 ```
 
-If audio files need to be merged:
+### Merge
+
+If audio files need to be merged and speed-adjusted (resampled):
 
 ```
-python merge.py <input_dir> <output_file>
+python merge.py [--speed <0.5 to 2.0>] <input_dir> <output_file>
 ```
+
+### Test TTS
+
+To check whether ``speechify --accelerate`` works on the machine:
+
+```
+python test_tts.py
+```
+
 
 ## Models
 
