@@ -11,21 +11,40 @@ Convert an epub ebook file to an audio book.
   - Coqui TTS library to generate audio (formerly Mozilla TTS)
   - Beautiful Soup to parse epub content
   - PyTorch for ML
+  - Langchain for tokenization
+  - Transformers
   - etc.
 
 ## Run
 
+```
 . venv/bin/activate
 python speechify.py <options> <input_file.epub> <output_dir>
+```
+
+Example:
+
+```
+python speechify.py --speaker-wav kennedy.wav --language en --format mp3 book.epub book_dir
+```
 
 ## Models
 
+Note that the required parameters differ per model
+
 Example models:
-- **tts_models/multilingual/multi-dataset/xtts_v2**: Latest multilingual model supporting multiple languages with good quality. Supports single-shot speech cloning.
+- **tts_models/multilingual/multi-dataset/xtts_v2**: Latest multilingual model supporting multiple languages with good quality.
+  - Supports zero-shot voice cloning.
+  - ``--speaker-wav <file with voice sample>``
+  - Token-based text splitting
+
+Note: XTTS is the only current option. Other Coqui models would need extension in speechify, e.g.:
 - **tts_models/en/vctk/vits** (default): High-quality multi-speaker model with natural-sounding voices. Good for longer texts.
-- **tts_models/de/thorsten/vits**: German model
+  - Multi-speaker model.
+  - ``--speaker <speaker ID or index>``
 - **tts_models/en/ljspeech/fast_pitch**: Optimized for speed while maintaining good quality. Single female voice.
 - **tts_models/en/jenny/jenny**: Premium quality single female voice, excellent clarity and naturalness.
+- **tts_models/de/thorsten/vits**: German model
 - **tts_models/de/thorsten/tacotron2-DDC**: German model
 
 Coqui TTS models are downloaded automatically when first used, but they're stored locally at:
@@ -37,13 +56,15 @@ Coqui TTS models are downloaded automatically when first used, but they're store
 ```
 
 
-## Speech samples
+## Speaker samples
 
-- For XTTS zero-shot voice cloning
-  - prereq: brew install yt-dlp
-  - youtube download audio: yt-dlp -x --audio-format wav -o <outfile> <url>
-  - trim audio: ffmpeg -i <infile> -ss <start timestamp> -t <length> -ac 1 -ar 16000 -y <outfile>
-  - 3-10 seconds suffice
+For XTTS zero-shot voice cloning:
+- prerequisite: brew install yt-dlp
+- youtube download audio: yt-dlp -x --audio-format wav -o <outfile> <url>
+- trim audio: ffmpeg -i <infile> -ss <start timestamp> -t <length> -ac 1 -ar 16000 -y <outfile>
+- 3-10 seconds suffice
+- Note: Usage is likely subject to license agreements beyond private and fair use
+
 ```
 # American English:
 # Obama: 
