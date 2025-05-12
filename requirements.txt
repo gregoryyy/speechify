@@ -1,18 +1,25 @@
-# requirements.txt
 # Core TTS engine with XTTS support
 TTS>=0.21.0  # Make sure you have the version that supports XTTS
+
+# Tokenizer for chunking
+transformers==4.33.3  # Avoids torch + tokenizer edge cases
+langchain>=0.1.0
+sentencepiece>=0.1.99  # Needed for many multilingual tokenizers
+
 # EPUB reading
 ebooklib>=0.17.1
 beautifulsoup4>=4.9.3
+
 # Audio processing and combination
 pydub>=0.25.1
+
 # Optional: needed for playback or file format conversion (backend for pydub)
-# Requires ffmpeg binary to be installed on system (brew install ffmpeg)
+# Requires ffmpeg binary to be installed on system (e.g., brew install ffmpeg)
 ffmpeg-python>=0.2.0
-numpy>=1.19.5
-# Optional safety: only needed if using torch serialization allowlist
-torch>=2.0.0
+
 # Progress bar
 tqdm>=4.62.3
 
-
+# Optional safety: compatibility with XTTS loading logic
+torch>=2.0.0
+numpy>=1.19.5
