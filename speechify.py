@@ -9,16 +9,13 @@ from tqdm import tqdm
 import logging
 from pydub import AudioSegment
 
-
-import nltk
+import spacy
 try:
-    nltk.data.find('tokenizers/punkt')
-    nltk.data.find('tokenizers/punkt_tab')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('punkt_tab') 
+    nlp = spacy.load("xx_sent_ud_sm")
+except OSError:
+    print("Model not installed. Run: python -m spacy download xx_sent_ud_sm")
+    raise
 
-from nltk.tokenize import sent_tokenize
 import torch
 from TTS.tts.configs.xtts_config import XttsConfig
 from TTS.tts.models.xtts import XttsAudioConfig
@@ -76,21 +73,50 @@ def sanitize_filename(name):
     '''Sanitize filename by removing invalid characters.'''
     return re.sub(r'[\\/*?:"<>|]', '', name.replace(' ', '_'))
 
-def split_text_nltk(text, max_chars=250):
-    '''Split text into chunks of a specified maximum character length, using NLTK.'''
-    sentences = sent_tokenize(text)
+
+import spacy
+import re
+
+nlp = spacy.load("en_core_web_sm")  # Replace with your language model if needed
+
+def preprocess_text(text, max_chars=250):
+    """Split text into sentence-aware chunks that do not exceed max_chars each."""
+    doc = nlp(text)
     chunks = []
-    current = ""
-    for sentence in sentences:
-        sentence = sentence.strip()
-        if len(current) + len(sentence) + 1 <= max_chars:
-            current = f"{current} {sentence}".strip()
+    current_chunk = ""
+
+    def strip_special_chars(sentence):
+        return re.sub(r"[^\w\s.,!?]", "", sentence)
+
+    for sent in doc.sents:
+        sentence = strip_special_chars(sent.text.strip())
+
+        if len(sentence) > max_chars:
+            # Split overly long sentence into smaller pieces at word level
+            words = sentence.split()
+            part = ""
+            for word in words:
+                if len(part) + len(word) + 1 <= max_chars:
+                    part = f"{part} {word}".strip()
+                else:
+                    if part:
+                        chunks.append(part)
+                    part = word
+            if part:
+                chunks.append(part)
+            continue
+
+        # Try adding the sentence to the current chunk
+        if len(current_chunk) + len(sentence) + 1 <= max_chars:
+            current_chunk = f"{current_chunk} {sentence}".strip()
         else:
-            if current:
-                chunks.append(current)
-            current = sentence
-    if current:
-        chunks.append(current)
+            if current_chunk:
+                chunks.append(current_chunk)
+            current_chunk = sentence
+
+    if current_chunk:
+        chunks.append(current_chunk)
+
     return chunks
 
 def get_device():
@@ -105,7 +131,6 @@ def get_device():
         logger.info("Using CPU")
         return torch.device("cpu")
 
-
 def text_to_speech(text, output_file, speaker_wav, language="de", output_format="wav", accelerate=False):
     '''Convert text to speech using XTTS v2.'''
     if os.path.exists(output_file):
@@ -116,8 +141,9 @@ def text_to_speech(text, output_file, speaker_wav, language="de", output_format=
     if accelerate == "true":
         device = get_device()
         tts.to(device)
-        
-    chunks = split_text_nltk(text, max_chars=500)
+    
+    # XTTS is max 253 chars for German.
+    chunks = preprocess_text(text, max_chars=250)
 
     temp_files = []
     for i, chunk in enumerate(chunks):
@@ -144,19 +170,45 @@ def combine_chapter_files(file_list, output_file):
 
 def main():
     parser = argparse.ArgumentParser(description="Convert EPUB to audio using XTTS v2")
-    parser.add_argument("epub_file", help="Path to the .epub file")
-    parser.add_argument("output_dir", help="Directory for audio output")
+    parser.add_argument("input_file", help="Path to the .epub or .txt file")
+    parser.add_argument("output_dir", nargs="?", default=None, help="Directory for audio output")
     parser.add_argument("--language", default="de", help="Language code (default: de)")
-    parser.add_argument("--speaker-wav", required=True, help="Path to WAV file to use for XTTS zero-shot voice cloning")
+    parser.add_argument("--speaker-wav", help="Path to WAV file to use for XTTS zero-shot voice cloning")
     parser.add_argument("--format", default="wav", choices=["wav", "mp3"], help="Output audio format")
     parser.add_argument("--combine", action="store_true", help="Combine all chapter files into a single audiobook")
-    parser.add_argument("--accelerate", default="false", help="Enable GPU or MPS acceleration") 
+    parser.add_argument("--accelerate", default="false", help="Enable GPU or MPS acceleration")
+    parser.add_argument("--text-only", action="store_true", help="Only output parsed chapter text, no audio")
     args = parser.parse_args()
 
-    os.makedirs(args.output_dir, exist_ok=True)
-    logger.info(f"Processing EPUB: {args.epub_file}")
+    logger.info(f"Processing file: {args.input_file}")
+    if args.input_file.endswith(".txt"):
+        chapters = []
+        with open(args.input_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            paragraphs = [clean_text(p) for p in content.split('\n===') if clean_text(p)]
+            for i, paragraph in enumerate(paragraphs):
+                chapters.append({
+                    'title': f"Chapter {i + 1}",
+                    'content': paragraph
+                })
+    elif args.input_file.endswith(".epub"):
+        chapters = epub_to_chapters(args.input_file)
+    else:
+        parser.error("Unsupported file format. Please provide a .epub or .txt file.")
 
-    chapters = epub_to_chapters(args.epub_file)
+    if args.text_only:
+        for i, chapter in enumerate(chapters):
+            print(f"\n=== Chapter {i+1}: {chapter['title']} ===\n")
+            print(chapter["content"])
+        return
+
+    if not args.output_dir:
+        parser.error("--output_dir is required unless --text-only is set.")
+
+    if not args.speaker_wav:
+        parser.error("--speaker-wav is required unless --text-only is set.")
+
+    os.makedirs(args.output_dir, exist_ok=True)
 
     output_files = []
     for i, chapter in enumerate(tqdm(chapters, desc="Converting chapters", unit="chapter")):

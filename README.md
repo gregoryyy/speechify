@@ -2,6 +2,9 @@
 
 Convert an epub ebook file to an audio book.
 
+Author: Gregor Heinrich gregor :: arbylon . net
+Date:   20250511
+
 ## Dependencies
 
 - System (Mac):
@@ -45,7 +48,7 @@ Synopsis:
 Convert EPUB to audio using XTTS v2
 
 positional arguments:
-  epub_file             Path to the .epub file
+  input_file            Path to the .epub or .txt file
   output_dir            Directory for audio output
 
 options:
@@ -57,6 +60,7 @@ options:
   --combine             Combine all chapter files into a single audiobook (default: false)
   --accelerate true/false
                         Enable GPU or MPS acceleration (default: false)
+  --text-only           Only output parsed chapter text, no audio
 ```
 
 Example:
@@ -127,6 +131,9 @@ ffmpeg -i obama.wav -ss 00:21:26 -t 00:00:13 -ac 1 -ar 16000 -y obama_sample1.wa
 # Kennedy:
 yt-dlp -x --audio-format wav -o "kennedy.wav" "https://www.youtube.com/watch?v=RclaV_3_eOA"
 ffmpeg -i kennedy.wav -ss 00:00:20.500 -t 00:00:14 -ac 1 -ar 16000 -y kennedy_sample1.wav
+# Jon Hamm:
+yt-dlp -x --audio-format wav -o "hamm.wav" "https://www.youtube.com/watch?v=RiHnqB66VN4"
+ffmpeg -i hamm.wav -ss 00:01:39.500 -t 00:00:14 -ac 1 -ar 16000 -y hamm_sample1.wav
 # German:
 # Burghart Klaußner:
 yt-dlp -x --audio-format wav -o "klaussner.wav" "https://www.youtube.com/watch?v=LzFTsOd-xMg"
@@ -140,4 +147,9 @@ yt-dlp -x --audio-format wav -o "ackermann.wav" "https://www.youtube.com/watch?v
 ffmpeg -i ackermann.wav -ss 00:11:35.000 -t 00:00:14 -ac 1 -ar 16000 -y ackermann_sample1.wav
 # Philipp Westermeyer:
 ffmpeg -i ackermann.wav -ss 00:04:05.500 -t 00:00:14 -ac 1 -ar 16000 -y westermeyer_sample1.wav
+# Beate
+yt-dlp -x --audio-format wav -o "beate.wav" "https://www.youtube.com/watch?v=vFbYEBmuwcc"
+ffmpeg -i beate.wav -ss 00:01:52.000 -t 00:00:14 -ac 1 -ar 16000 -y beate_sample1.wav
+
+
 ```

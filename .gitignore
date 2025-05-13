@@ -5,3 +5,5 @@ input/**
 *.wav
 *.mp3
 *.epub
+*.txt
+*.pdf
